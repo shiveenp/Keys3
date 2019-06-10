@@ -22,6 +22,7 @@ class S3Client(private val endpoint: String, private val bucketName: String) {
         return keyList
     }
 
+    // Just a test function
     fun put() {
         val testFile = File("test-file")
         testFile.createNewFile()
