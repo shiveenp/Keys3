@@ -14,11 +14,13 @@ class S3Client {
         .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration("http://localhost:4572", "ap-southeast-2"))
         .build()
 
-    fun listAllKeys() {
+    fun listAllKeys(): List<S3Data> {
         val req = ListObjectsV2Request().withBucketName(bucket).withMaxKeys(10)
+        val keyList = mutableListOf<S3Data>()
         client.listObjectsV2(req).objectSummaries.forEach {
-            println("key: ${it.key}; size: ${it.size}")
+           keyList.add(S3Data(it.key, it.size/1000, it.lastModified.toString()))
         }
+        return keyList
     }
 
     fun put() {
@@ -27,3 +29,9 @@ class S3Client {
         client.putObject(bucket, "test-1", testFile)
     }
 }
+
+data class S3Data(
+    val key: String,
+    val size: Long,
+    val lastModifedAt: String
+)
