@@ -72,4 +72,3 @@ fun main() {
     }
 }
 
-fun ElementCreator<ULElement>.createKeyElement(key: String) = li().text(key)
