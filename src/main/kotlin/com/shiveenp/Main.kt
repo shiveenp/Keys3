@@ -32,9 +32,9 @@ fun main() {
                             val bucketInput = input(type = InputType.text, placeholder = "Enter S3 Bucket Name")
                             button(mapOf("class" to "ui primary button")).text("Search").on.click {
                                 GlobalScope.launch {
+                                    loader.setAttribute("class", "ui active centered inline loader")
                                     val s3Client =
                                         S3Client(endpointInput.getValue().await(), bucketInput.getValue().await())
-                                    loader.setAttribute("class", "ui active centered inline loader")
                                     keyData.value = s3Client.listAllKeys()
                                     if (keyData.value.isNotEmpty()) {
                                         loader.setAttribute("class", "ui disabled loader")
@@ -58,8 +58,8 @@ fun main() {
                                 it.forEach {
                                     tr().new {
                                         td(mapOf("data-lable" to "Key")).innerHTML("<i class=\"file outline icon\"></i> <a target=\"_blank\" href=${it.downloadUrl} download=${it.key}>${it.key}</a>")
-                                        td(mapOf("data-lable" to "File Size (in KB)")).text(it.size.toString())
-                                        td(mapOf("data-lable" to "Last Modified At")).text(it.lastModifedAt)
+                                        td(mapOf("data-lable" to "File Size")).text("${it.size} KB")
+                                        td(mapOf("data-lable" to "Last Modified At")).text(it.lastModifiedAt)
 
                                     }
                                 }

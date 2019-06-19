@@ -26,7 +26,7 @@ class S3Client(private val endpoint: String, private val bucketName: String) {
         val req = ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(10)
         val keyList = mutableListOf<S3Data>()
         client.listObjectsV2(req).objectSummaries.forEach {
-            keyList.add(S3Data(it.key, "$endpoint/$bucketName/${it.key}", it.size / 1000, it.lastModified.toString()))
+            keyList.add(S3Data(it.key, "$endpoint/$bucketName/${it.key}", it.size.toString().toDouble() / 1000.0, it.lastModified.toString()))
         }
         return keyList
     }
@@ -35,6 +35,6 @@ class S3Client(private val endpoint: String, private val bucketName: String) {
 data class S3Data(
     val key: String,
     val downloadUrl: String,
-    val size: Long,
-    val lastModifedAt: String
+    val size: Double,
+    val lastModifiedAt: String
 )
