@@ -14,10 +14,10 @@ import kotlinx.coroutines.launch
 
 fun main() {
 
-    Kweb(port = 9000, plugins = listOf(fomanticUIPlugin)) {
+    Kweb(port = 80, plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
-                path("/s3") {
+                path("/") {
                     div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
                     div(fomantic.ui.divider)
 
@@ -35,10 +35,13 @@ fun main() {
                                     loader.setAttribute("class", "ui active centered inline loader")
                                     val s3Client =
                                         S3Client(endpointInput.getValue().await(), bucketInput.getValue().await())
-                                    keyData.value = s3Client.listAllKeys()
+                                    try {
+                                        keyData.value = s3Client.listAllKeys()
+                                    } catch (ex: Exception) {
+                                        loader.setAttribute("class", "ui disabled loader")
+                                    }
                                     if (keyData.value.isNotEmpty()) {
                                         loader.setAttribute("class", "ui disabled loader")
-
                                     }
                                 }
                             }

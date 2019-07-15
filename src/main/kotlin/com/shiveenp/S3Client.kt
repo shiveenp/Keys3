@@ -14,14 +14,6 @@ class S3Client(private val endpoint: String, private val bucketName: String) {
         .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(endpoint, "ap-southeast-2"))
         .build()
 
-    init {
-        client.setBucketAcl(
-            SetBucketAclRequest(
-                bucketName, CannedAccessControlList.PublicRead
-            )
-        )
-    }
-
     fun listAllKeys(): List<S3Data> {
         val req = ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(10)
         val keyList = mutableListOf<S3Data>()
