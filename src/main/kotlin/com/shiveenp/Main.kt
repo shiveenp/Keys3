@@ -18,7 +18,7 @@ fun main() {
         doc.body.new {
             route {
                 path("/s3") {
-                    div(fomantic.ui.header).text("Welcome to Local Amazon S3 Browser 💻")
+                    div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
                     div(fomantic.ui.divider)
 
                     val keyData = KVar(emptyList<S3Data>())
