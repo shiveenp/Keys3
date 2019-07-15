@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 fun main() {
 
-    Kweb(port = 80, plugins = listOf(fomanticUIPlugin)) {
+    Kweb(port = 8080, plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
                 path("/") {
