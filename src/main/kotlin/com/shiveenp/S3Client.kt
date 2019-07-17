@@ -2,9 +2,7 @@ package com.shiveenp
 
 import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.CannedAccessControlList
 import com.amazonaws.services.s3.model.ListObjectsV2Request
-import com.amazonaws.services.s3.model.SetBucketAclRequest
 
 class S3Client(private val endpoint: String, private val bucketName: String) {
 

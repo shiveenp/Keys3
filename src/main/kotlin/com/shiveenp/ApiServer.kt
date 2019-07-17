@@ -16,8 +16,6 @@ fun main(args: Array<String>) {
 
     val herokuPort: String? = System.getenv("PORT")
 
-    println("in main")
-
     startKweb(herokuPort)
 }
 
