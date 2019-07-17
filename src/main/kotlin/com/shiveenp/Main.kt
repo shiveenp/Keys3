@@ -14,7 +14,9 @@ import kotlinx.coroutines.launch
 
 fun main() {
 
-    Kweb(port = 12000, plugins = listOf(fomanticUIPlugin)) {
+    val herokuPort = System.getenv("PORT")
+
+    Kweb(port = herokuPort.toInt(), plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
                 path("/") {
