@@ -10,6 +10,7 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'application'
 apply plugin: 'kotlin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
@@ -49,14 +50,21 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+mainClassName = 'com.shiveenp.ApiServerKt'
+
 jar {
     manifest {
         attributes 'Main-Class': 'com.shiveenp.ApiServerKt'
     }
 }
 
-task stage(dependsOn: ['shadowJar', 'clean'])
-shadowJar.mustRunAfter clean
+//task stage(dependsOn: ['shadowJar', 'clean'])
+//shadowJar.mustRunAfter clean
+task stage {
+    dependsOn installDist
+}
+
+installDist.mustRunAfter clean
 
 shadowJar {
     zip64 true

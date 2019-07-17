@@ -16,6 +16,13 @@ fun main(args: Array<String>) {
 
     val herokuPort: String? = System.getenv("PORT")
 
+    println("in main")
+
+    startKweb(herokuPort)
+}
+
+private fun startKweb(herokuPort: String?) {
+    println("in kweb")
     Kweb(port = herokuPort?.toInt() ?: 6300, debug = true, plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
