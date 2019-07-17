@@ -55,6 +55,8 @@ jar {
     }
 }
 
+task stage(dependsOn: ['shadowJar', 'clean'])
+shadowJar.mustRunAfter clean
 
 shadowJar {
     zip64 true
