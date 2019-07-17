@@ -1,7 +1,5 @@
-package main.kotlin.com.shiveenp
+package com.shiveenp
 
-import com.shiveenp.S3Client
-import com.shiveenp.S3Data
 import io.kweb.Kweb
 import io.kweb.dom.element.creation.tags.*
 import io.kweb.dom.element.events.on
