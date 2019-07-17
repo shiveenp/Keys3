@@ -58,8 +58,7 @@ jar {
     }
 }
 
-//task stage(dependsOn: ['shadowJar', 'clean'])
-//shadowJar.mustRunAfter clean
+//https://medium.com/@dariopellegrini/deploy-a-kotlin-server-in-minutes-using-ktor-and-heroku-ed6ed33337f
 task stage {
     dependsOn installDist
 }
