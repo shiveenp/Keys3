@@ -65,5 +65,5 @@ shadowJar {
 task runServer(type: JavaExec) {
     main = 'com.shiveenp.ApiServerKt'
     classpath = sourceSets.main.runtimeClasspath
-    jvmArgs '-Xmx1.2g -Xss512m'
+    jvmArgs '-Xmx1.2g -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:+UnlockDiagnosticVMOptions'
 }
