@@ -51,7 +51,7 @@ compileTestKotlin {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.shiveenp.MainKt'
+        attributes 'Main-Class': 'com.shiveenp.ApiServerKt'
     }
 }
 
@@ -60,4 +60,9 @@ shadowJar.mustRunAfter clean
 
 shadowJar {
     zip64 true
+}
+
+task runServer(type: JavaExec) {
+    main = 'com.shiveenp.ApiServerKt'
+    classpath = sourceSets.main.runtimeClasspath
 }

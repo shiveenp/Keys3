@@ -12,14 +12,14 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 
-fun main() {
+fun main(args: Array<String>) {
 
-    val herokuPort = System.getenv("PORT")
+    val herokuPort: String? = System.getenv("PORT")
 
-    Kweb(port = herokuPort.toInt(), plugins = listOf(fomanticUIPlugin)) {
+    Kweb(port = herokuPort?.toInt() ?: 6300, debug = true, plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
-                path("/s3") {
+                path("") {
                     div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
                     div(fomantic.ui.divider)
 
