@@ -27,7 +27,6 @@ private fun startKweb(herokuPort: String?) {
             route {
                 path("") {
                     div(fomantic.ui.main.container).new {
-
                         div(fomantic.ui.vertical.segment).new {
                             div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
                         }
@@ -39,7 +38,6 @@ private fun startKweb(herokuPort: String?) {
                         createInputSegment(loader, keyData)
                         createKeysTable(keyData)
                     }
-
                 }
             }
         }
@@ -65,9 +63,11 @@ private fun ElementCreator<DivElement>.createInputSegment(
                     try {
                         keyData.value = s3Client.listAllKeys()
                     } catch (ex: Exception) {
+                        p().execute(ERROR_TOAST)
                         loader.setAttribute("class", "ui disabled text loader")
                     }
                     if (keyData.value.isNotEmpty()) {
+                        p().execute(SUCCESS_TOAST)
                         loader.setAttribute("class", "ui disabled text loader")
                     }
                 }
@@ -105,3 +105,24 @@ private fun ElementCreator<DivElement>.createKeysTable(
     }
 }
 
+
+val SUCCESS_TOAST =                             """
+                            ${'$'}('body')
+  .toast({
+    class: 'info',
+    showIcon: '',
+    message: 'Successfully retrieved data'
+  })
+;
+                        """.trimIndent()
+
+
+val ERROR_TOAST =                             """
+                            ${'$'}('body')
+  .toast({
+    class: 'error',
+    showIcon: '',
+    message: 'Unable to perform the operation, are you sure the bucket is public?'
+  })
+;
+                        """.trimIndent()
