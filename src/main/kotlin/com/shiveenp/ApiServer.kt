@@ -32,8 +32,8 @@ private fun startKweb(herokuPort: String?) {
 
                         val keyData = KVar(emptyList<S3Data>())
 
-                        val loader = div(mapOf("class" to "ui active centered inline loader"))
-                        loader.setAttribute("class", "ui disabled loader")
+                        val loader = div(mapOf("class" to "ui active text loader")).addText("Retrieving keys...")
+                        loader.setAttribute("class", "ui disabled text loader")
 
                         div(fomantic.ui.vertical.segment).new {
                             div(fomantic.ui.input).new {
@@ -41,16 +41,16 @@ private fun startKweb(herokuPort: String?) {
                                 val bucketInput = input(type = InputType.text, placeholder = "Enter S3 Bucket Name")
                                 button(mapOf("class" to "ui primary button")).text("Search").on.click {
                                     GlobalScope.launch {
-                                        loader.setAttribute("class", "ui active centered inline loader")
+                                        loader.setAttribute("class", "ui active text loader")
                                         val s3Client =
                                             S3Client(endpointInput.getValue().await(), bucketInput.getValue().await())
                                         try {
                                             keyData.value = s3Client.listAllKeys()
                                         } catch (ex: Exception) {
-                                            loader.setAttribute("class", "ui disabled loader")
+                                            loader.setAttribute("class", "ui disabled text loader")
                                         }
                                         if (keyData.value.isNotEmpty()) {
-                                            loader.setAttribute("class", "ui disabled loader")
+                                            loader.setAttribute("class", "ui disabled text loader")
                                         }
                                     }
                                 }
