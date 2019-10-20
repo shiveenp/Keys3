@@ -17,5 +17,6 @@ jobs:
     - name: Check heroku version
       run: heroku --version
     - name: Login to heroku
-      env: ${{ HEROKU_API_KEY }}
+      env:
+        heroku_api_key: ${{ HEROKU_API_KEY }}
       run: heroku login
