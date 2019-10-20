@@ -145,11 +145,11 @@ val ERROR_TOAST = """
 
 
 private val AWS_REGION_OPTIONS = mapOf(
+    "ap-southeast-2" to "Asia Pacific (Sydney)",
     "ap-east-1" to "Asia Pacific (Hong Kong)",
     "ap-south-1" to "Asia Pacific (Mumbai)",
     "ap-northeast-3" to "Asia Pacific (Osaka-Local)",
     "ap-northeast-2" to "Asia Pacific (Seoul)",
     "ap-southeast-1" to "Asia Pacific (Singapore)",
-    "ap-southeast-2" to "Asia Pacific (Sydney)",
     "ap-northeast-1" to "Asia Pacific (Tokyo)"
 )
