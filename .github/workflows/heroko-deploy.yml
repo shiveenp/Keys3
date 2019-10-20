@@ -12,7 +12,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install heroko
-      run: curl https://cli-assets.heroku.com/install.sh | sh
-    - name: Check heroku version
-      run: heroko --version
+    - name: Check Build
+      run: ./gradlew build
