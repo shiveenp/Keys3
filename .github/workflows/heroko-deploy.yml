@@ -14,5 +14,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install heroko
       run: curl https://cli-assets.heroku.com/install.sh | sh
-    - name: Check heroko version
+    - name: Check heroku version
       run: heroku --version
+    - name: Login to heroku
+      env: HEROKU_API_KEY
+      run: heroku login
