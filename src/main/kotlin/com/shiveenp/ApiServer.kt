@@ -52,19 +52,35 @@ private fun ElementCreator<DivElement>.createInputSegment(
     keyData: KVar<List<S3Data>>
 ) {
     div(fomantic.ui.vertical.segment).new {
+        //        var endpointInput: String? = null
+        val endpointInput = select(fomantic.ui.dropdown)
+        endpointInput.new {
+            AWS_REGION_OPTIONS.forEach {
+                option(mapOf("value" to it.key)).text(it.value)
+            }
+        }
         div(fomantic.ui.input).new {
-            val endpointInput = input(type = InputType.text, placeholder = "Enter S3 Endpoint Url")
             val bucketInput = input(type = InputType.text, placeholder = "Enter S3 Bucket Name")
+            val awsKey = input(type = InputType.text, placeholder = "Access Key")
+            val awsSecret = input(type = InputType.text, placeholder = "Secret Key")
             button(mapOf("class" to "ui primary button")).text("Search").on.click {
                 GlobalScope.launch {
                     loader.setAttribute("class", "ui active text loader")
                     val s3Client =
-                        S3Client(endpointInput.getValue().await(), bucketInput.getValue().await())
+                        S3Client(
+                            endpointInput.getValue().await(),
+                            bucketInput.getValue().await(),
+                            awsKey.getValue().await(),
+                            awsSecret.getValue().await()
+                        )
                     try {
                         keyData.value = s3Client.listAllKeys()
                     } catch (ex: Exception) {
+                        println(ex.localizedMessage)
+                        println(ex.printStackTrace())
                         p().execute(ERROR_TOAST)
                         loader.setAttribute("class", "ui disabled text loader")
+                        createKeysTable(KVar(emptyList()))
                     }
                     if (keyData.value.isNotEmpty()) {
                         p().execute(SUCCESS_TOAST)
@@ -106,7 +122,7 @@ private fun ElementCreator<DivElement>.createKeysTable(
 }
 
 
-val SUCCESS_TOAST =                             """
+val SUCCESS_TOAST = """
                             ${'$'}('body')
   .toast({
     class: 'info',
@@ -117,7 +133,7 @@ val SUCCESS_TOAST =                             """
                         """.trimIndent()
 
 
-val ERROR_TOAST =                             """
+val ERROR_TOAST = """
                             ${'$'}('body')
   .toast({
     class: 'error',
@@ -126,3 +142,14 @@ val ERROR_TOAST =                             """
   })
 ;
                         """.trimIndent()
+
+
+private val AWS_REGION_OPTIONS = mapOf(
+    "ap-east-1" to "Asia Pacific (Hong Kong)",
+    "ap-south-1" to "Asia Pacific (Mumbai)",
+    "ap-northeast-3" to "Asia Pacific (Osaka-Local)",
+    "ap-northeast-2" to "Asia Pacific (Seoul)",
+    "ap-southeast-1" to "Asia Pacific (Singapore)",
+    "ap-southeast-2" to "Asia Pacific (Sydney)",
+    "ap-northeast-1" to "Asia Pacific (Tokyo)"
+)
