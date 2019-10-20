@@ -15,4 +15,4 @@ jobs:
     - name: Install heroko
       run: curl https://cli-assets.heroku.com/install.sh | sh
     - name: Check heroko version
-      run: /usr/local/bin/heroko --version
+      run: heroku --version
