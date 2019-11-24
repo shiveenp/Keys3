@@ -29,27 +29,51 @@ private fun startApp(herokuPort: String?) {
                     var getNextPage: DivElement? = null
                     div(fomantic.ui.main.container).new {
                         div(fomantic.ui.vertical.segment).new {
-                            div(fomantic.ui.header).text("""
+                            div(fomantic.ui.header).text(
+                                """
                                 Welcome to S3 Browser 💻
                                 
                                 To start browsing your S3 bucket, enter the details below:
-                                """.trimIndent())
+                                """.trimIndent()
+                            )
                         }
 
+                        val s3ClientKVar: KVar<S3Client?> = KVar(null)
+                        val continuationToken = KVar("")
                         val keyData = KVar(emptyList<S3Data>())
                         val showGetNextPage = KVar(false)
 
                         val loader = div(mapOf("class" to "ui active text loader")).addText("Retrieving keys...")
                         loader.setAttribute("class", "ui disabled text loader")
-                        createInputSegment(loader, getNextPage, keyData)
+                        createInputSegment(s3ClientKVar, loader, getNextPage, keyData, continuationToken)
                         createKeysTable(keyData)
-                        getNextPage = div(fomantic.ui.buttons)
-                        getNextPage!!.new {
+                        div().new {
                             button(mapOf("class" to "ui primary button")).text("Get Next Page").on.click {
+                                val continuationTokenValue = continuationToken.value
+                                if (continuationTokenValue.isNotBlank()) {
+                                    try {
+                                        val keyListResponse =
+                                            s3ClientKVar.value!!.listAllKeys(continuationToken = continuationTokenValue)
+                                        if (keyListResponse.first != null) {
+                                            continuationToken.value = keyListResponse.first!!
+                                            getNextPage?.setAttribute("visibility", "show;")
+                                        }
+                                        keyData.value = keyListResponse.second
+                                    } catch (ex: Exception) {
+                                        println(ex.localizedMessage)
+                                        println(ex.printStackTrace())
+                                        p().execute(ERROR_TOAST)
+                                        loader.setAttribute("class", "ui disabled text loader")
+                                        createKeysTable(KVar(emptyList()))
+                                    }
+                                    if (keyData.value.isNotEmpty()) {
+                                        p().execute(SUCCESS_TOAST)
+                                        loader.setAttribute("class", "ui disabled text loader")
+                                    }
+                                }
 
                             }
                         }
-                        getNextPage!!.setAttribute("style", "visibility:hide;")
                     }
                 }
             }
@@ -61,12 +85,14 @@ private fun startApp(herokuPort: String?) {
  * Creates the input area where the users can enter the details about the S3 bucket
  */
 private fun ElementCreator<DivElement>.createInputSegment(
+    s3ClientKvar: KVar<S3Client?>,
     loader: Element,
     getNextPage: Element?,
-    keyData: KVar<List<S3Data>>
+    keyData: KVar<List<S3Data>>,
+    continuationToken: KVar<String>
 ) {
     div(fomantic.ui.vertical.segment).new {
-        //        var endpointInput: String? = null
+        var s3Client: S3Client? = null
         val endpointInput = select(fomantic.ui.dropdown)
         endpointInput.new {
             AWS_REGION_OPTIONS.forEach {
@@ -80,7 +106,7 @@ private fun ElementCreator<DivElement>.createInputSegment(
             button(mapOf("class" to "ui primary button")).text("Search").on.click {
                 GlobalScope.launch {
                     loader.setAttribute("class", "ui active text loader")
-                    val s3Client =
+                    s3ClientKvar.value =
                         S3Client(
                             endpointInput.getValue().await(),
                             bucketInput.getValue().await(),
@@ -88,8 +114,9 @@ private fun ElementCreator<DivElement>.createInputSegment(
                             awsSecret.getValue().await()
                         )
                     try {
-                        val keyListResponse = s3Client.listAllKeys()
+                        val keyListResponse = s3ClientKvar.value!!.listAllKeys()
                         if (keyListResponse.first != null) {
+                            continuationToken.value = keyListResponse.first!!
                             getNextPage?.setAttribute("visibility", "show;")
                         }
                         keyData.value = keyListResponse.second
