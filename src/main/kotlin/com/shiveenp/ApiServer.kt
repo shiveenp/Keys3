@@ -26,17 +26,30 @@ private fun startKweb(herokuPort: String?) {
         doc.body.new {
             route {
                 path("") {
+                    var getNextPage: DivElement? = null
                     div(fomantic.ui.main.container).new {
                         div(fomantic.ui.vertical.segment).new {
-                            div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
+                            div(fomantic.ui.header).text("""
+                                Welcome to S3 Browser 💻
+                                
+                                To start browsing your S3 bucket, enter the details below:
+                                """.trimIndent())
                         }
 
                         val keyData = KVar(emptyList<S3Data>())
+                        val showGetNextPage = KVar(false)
 
                         val loader = div(mapOf("class" to "ui active text loader")).addText("Retrieving keys...")
                         loader.setAttribute("class", "ui disabled text loader")
-                        createInputSegment(loader, keyData)
+                        createInputSegment(loader, getNextPage, keyData)
                         createKeysTable(keyData)
+                        getNextPage = div(fomantic.ui.buttons)
+                        getNextPage!!.new {
+                            button(mapOf("class" to "ui primary button")).text("Get Next Page").on.click {
+
+                            }
+                        }
+                        getNextPage!!.setAttribute("style", "visibility:hide;")
                     }
                 }
             }
@@ -49,6 +62,7 @@ private fun startKweb(herokuPort: String?) {
  */
 private fun ElementCreator<DivElement>.createInputSegment(
     loader: Element,
+    getNextPage: Element?,
     keyData: KVar<List<S3Data>>
 ) {
     div(fomantic.ui.vertical.segment).new {
@@ -74,7 +88,11 @@ private fun ElementCreator<DivElement>.createInputSegment(
                             awsSecret.getValue().await()
                         )
                     try {
-                        keyData.value = s3Client.listAllKeys()
+                        val keyListResponse = s3Client.listAllKeys()
+                        if (keyListResponse.first != null) {
+                            getNextPage?.setAttribute("visibility", "show;")
+                        }
+                        keyData.value = keyListResponse.second
                     } catch (ex: Exception) {
                         println(ex.localizedMessage)
                         println(ex.printStackTrace())

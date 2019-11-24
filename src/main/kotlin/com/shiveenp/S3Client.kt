@@ -29,10 +29,13 @@ class S3Client(
         .withCredentials(getCredentialsProvider())
         .build()
 
-    fun listAllKeys(): List<S3Data> {
-        val req = ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(10)
+    fun listAllKeys(maxKeys: Int? = null): Pair<String?, List<S3Data>> {
+        val bucketName = "brows3r-test"
+        val req = ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(maxKeys ?: 10)
         val keyList = mutableListOf<S3Data>()
-        client.listObjectsV2(req).objectSummaries.forEach {
+        val listObjectResponse =  client.listObjectsV2(req)
+        println(listObjectResponse.nextContinuationToken)
+        listObjectResponse.objectSummaries.forEach {
             keyList.add(
                 S3Data(
                     it.key,
@@ -47,7 +50,7 @@ class S3Client(
                 )
             )
         }
-        return keyList
+        return Pair(listObjectResponse.nextContinuationToken, keyList)
     }
 
     private fun getEndpointConfiguration(): AwsClientBuilder.EndpointConfiguration {
@@ -57,8 +60,8 @@ class S3Client(
     private fun getCredentialsProvider() =
         AWSStaticCredentialsProvider(
             BasicAWSCredentials(
-                awsAccessKey,
-                awsSecretKey
+                "AKIATHVTC6SJUIH7MBPY",
+                "dlnvO/K7Y2kzePfNRAL3/bR8NIZRkLsGYFvTVMQk"
             )
         )
 }
