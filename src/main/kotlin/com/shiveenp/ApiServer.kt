@@ -29,13 +29,7 @@ private fun startApp(herokuPort: String?) {
                     var getNextPage: DivElement? = null
                     div(fomantic.ui.main.container).new {
                         div(fomantic.ui.vertical.segment).new {
-                            div(fomantic.ui.header).text(
-                                """
-                                Welcome to S3 Browser 💻
-                                
-                                To start browsing your S3 bucket, enter the details below:
-                                """.trimIndent()
-                            )
+                            div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
                         }
 
                         val s3ClientKVar: KVar<S3Client?> = KVar(null)
@@ -48,7 +42,7 @@ private fun startApp(herokuPort: String?) {
                         createInputSegment(s3ClientKVar, loader, getNextPage, keyData, continuationToken)
                         createKeysTable(keyData)
                         div().new {
-                            button(mapOf("class" to "ui primary button")).text("Get Next Page").on.click {
+                            button(mapOf("class" to "ui primary button")).text("Get More Data").on.click {
                                 val continuationTokenValue = continuationToken.value
                                 if (continuationTokenValue.isNotBlank()) {
                                     try {
