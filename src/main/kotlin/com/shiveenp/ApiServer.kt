@@ -9,6 +9,7 @@ import io.kweb.dom.element.new
 import io.kweb.plugins.fomanticUI.fomantic
 import io.kweb.plugins.fomanticUI.fomanticUIPlugin
 import io.kweb.routing.route
+import io.kweb.state.KVal
 import io.kweb.state.KVar
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
@@ -26,7 +27,6 @@ private fun startApp(herokuPort: String?) {
         doc.body.new {
             route {
                 path("") {
-                    var getNextPage: DivElement? = null
                     div(fomantic.ui.main.container).new {
                         div(fomantic.ui.vertical.segment).new {
                             div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
@@ -35,40 +35,76 @@ private fun startApp(herokuPort: String?) {
                         val s3ClientKVar: KVar<S3Client?> = KVar(null)
                         val continuationToken = KVar("")
                         val keyData = KVar(emptyList<S3Data>())
-                        val showGetNextPage = KVar(false)
+                        val showGetMoreData = KVar(false)
 
                         val loader = div(mapOf("class" to "ui active text loader")).addText("Retrieving keys...")
                         loader.setAttribute("class", "ui disabled text loader")
-                        createInputSegment(s3ClientKVar, loader, getNextPage, keyData, continuationToken)
+                        createInputSegment(s3ClientKVar, loader, keyData, continuationToken, showGetMoreData)
                         createKeysTable(keyData)
-                        div().new {
-                            button(mapOf("class" to "ui primary button")).text("Get More Data").on.click {
-                                val continuationTokenValue = continuationToken.value
-                                if (continuationTokenValue.isNotBlank()) {
-                                    try {
-                                        val keyListResponse =
-                                            s3ClientKVar.value!!.listAllKeys(continuationToken = continuationTokenValue)
-                                        if (keyListResponse.first != null) {
-                                            continuationToken.value = keyListResponse.first!!
-                                            getNextPage?.setAttribute("visibility", "show;")
-                                        }
-                                        keyData.value = keyListResponse.second
-                                    } catch (ex: Exception) {
-                                        println(ex.localizedMessage)
-                                        println(ex.printStackTrace())
-                                        p().execute(ERROR_TOAST)
-                                        loader.setAttribute("class", "ui disabled text loader")
-                                        createKeysTable(KVar(emptyList()))
-                                    }
-                                    if (keyData.value.isNotEmpty()) {
-                                        p().execute(SUCCESS_TOAST)
-                                        loader.setAttribute("class", "ui disabled text loader")
-                                    }
-                                }
-
-                            }
-                        }
+                        displayGetMoreElement(showGetMoreData, continuationToken, s3ClientKVar, keyData, loader)
                     }
+                }
+            }
+        }
+    }
+}
+
+private fun ElementCreator<DivElement>.displayGetMoreElement(
+    showGetMoreData: KVar<Boolean>,
+    continuationToken: KVar<String>,
+    s3ClientKVar: KVar<S3Client?>,
+    keyData: KVar<List<S3Data>>,
+    loader: Element
+) {
+    showGetMoreData.map {
+        if (it) {
+            println("true")
+            createGetMoreDataSegment(
+                continuationToken,
+                s3ClientKVar,
+                showGetMoreData,
+                keyData,
+                loader
+            )
+        } else {
+            println("false")
+        }
+    }
+}
+
+private fun ElementCreator<DivElement>.createGetMoreDataSegment(
+    continuationToken: KVar<String>,
+    s3ClientKVar: KVar<S3Client?>,
+    showGetMoreData: KVar<Boolean>,
+    keyData: KVar<List<S3Data>>,
+    loader: Element
+): Element {
+    return div().new {
+        button(mapOf("class" to "ui primary button")).text("Get More Data").on.click {
+            val continuationTokenValue = continuationToken.value
+            if (continuationTokenValue.isNotBlank()) {
+                try {
+                    val keyListResponse =
+                        s3ClientKVar.value!!.listAllKeys(continuationToken = continuationTokenValue)
+                    if (keyListResponse.first != null) {
+                        println("continuation token now is: ${keyListResponse.first}")
+                        continuationToken.value = keyListResponse.first!!
+                    } else {
+                        println("here")
+                        showGetMoreData.value = false
+                    }
+                    println("value is: ${showGetMoreData.value}")
+                    keyData.value = keyListResponse.second
+                } catch (ex: Exception) {
+                    println(ex.localizedMessage)
+                    println(ex.printStackTrace())
+                    p().execute(ERROR_TOAST)
+                    loader.setAttribute("class", "ui disabled text loader")
+                    createKeysTable(KVar(emptyList()))
+                }
+                if (keyData.value.isNotEmpty()) {
+                    p().execute(SUCCESS_TOAST)
+                    loader.setAttribute("class", "ui disabled text loader")
                 }
             }
         }
@@ -81,12 +117,11 @@ private fun startApp(herokuPort: String?) {
 private fun ElementCreator<DivElement>.createInputSegment(
     s3ClientKvar: KVar<S3Client?>,
     loader: Element,
-    getNextPage: Element?,
     keyData: KVar<List<S3Data>>,
-    continuationToken: KVar<String>
+    continuationToken: KVar<String>,
+    showGetNextPage: KVar<Boolean>
 ) {
     div(fomantic.ui.vertical.segment).new {
-        var s3Client: S3Client? = null
         val endpointInput = select(fomantic.ui.dropdown)
         endpointInput.new {
             AWS_REGION_OPTIONS.forEach {
@@ -111,7 +146,9 @@ private fun ElementCreator<DivElement>.createInputSegment(
                         val keyListResponse = s3ClientKvar.value!!.listAllKeys()
                         if (keyListResponse.first != null) {
                             continuationToken.value = keyListResponse.first!!
-                            getNextPage?.setAttribute("visibility", "show;")
+                            showGetNextPage.value = true
+                        } else {
+                            showGetNextPage.value = false
                         }
                         keyData.value = keyListResponse.second
                     } catch (ex: Exception) {
