@@ -30,10 +30,9 @@ class S3Client(
         .build()
 
     fun listAllKeys(maxKeys: Int? = null): Pair<String?, List<S3Data>> {
-        val bucketName = "brows3r-test"
         val req = ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(maxKeys ?: 10)
         val keyList = mutableListOf<S3Data>()
-        val listObjectResponse =  client.listObjectsV2(req)
+        val listObjectResponse = client.listObjectsV2(req)
         println(listObjectResponse.nextContinuationToken)
         listObjectResponse.objectSummaries.forEach {
             keyList.add(
@@ -60,8 +59,8 @@ class S3Client(
     private fun getCredentialsProvider() =
         AWSStaticCredentialsProvider(
             BasicAWSCredentials(
-                "AKIATHVTC6SJUIH7MBPY",
-                "dlnvO/K7Y2kzePfNRAL3/bR8NIZRkLsGYFvTVMQk"
+                awsAccessKey,
+                awsSecretKey
             )
         )
 }

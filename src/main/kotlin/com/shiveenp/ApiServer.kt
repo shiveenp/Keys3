@@ -18,10 +18,10 @@ fun main() {
 
     val herokuPort: String? = System.getenv("PORT")
 
-    startKweb(herokuPort)
+    startApp(herokuPort)
 }
 
-private fun startKweb(herokuPort: String?) {
+private fun startApp(herokuPort: String?) {
     Kweb(port = herokuPort?.toInt() ?: 6300, debug = true, plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
