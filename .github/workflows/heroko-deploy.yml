@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -14,3 +14,5 @@ jobs:
     - uses: actions/checkout@v1
     - name: Check Build
       run: ./gradlew build
+    - name: Push to Heroku
+      run: sudo snap install --classic heroku & git push heroku master
