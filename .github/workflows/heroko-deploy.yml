@@ -12,9 +12,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Check Build
-      run: ./gradlew build
+#    - name: Check Build
+#      run: ./gradlew build
     - name: Install Heroku
       run: sudo snap install --classic heroku
+    - name: Add heroku git remote
+      run: heroku git:remote -a secure-scrubland-34237
     - name: Push to heroku
       run: git push heroku HEAD:master
