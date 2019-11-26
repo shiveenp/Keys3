@@ -29,10 +29,16 @@ class S3Client(
         .withCredentials(getCredentialsProvider())
         .build()
 
-    fun listAllKeys(): List<S3Data> {
-        val req = ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(10)
+    fun listAllKeys(maxKeys: Int? = null, continuationToken: String? = null): Pair<String?, List<S3Data>> {
+        val req = if (continuationToken.isNullOrBlank()) {
+            ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(maxKeys ?: 10)
+        } else {
+            ListObjectsV2Request().withBucketName(bucketName).withMaxKeys(maxKeys ?: 10)
+                .withContinuationToken(continuationToken)
+        }
         val keyList = mutableListOf<S3Data>()
-        client.listObjectsV2(req).objectSummaries.forEach {
+        val listObjectResponse = client.listObjectsV2(req)
+        listObjectResponse.objectSummaries.forEach {
             keyList.add(
                 S3Data(
                     it.key,
@@ -47,7 +53,7 @@ class S3Client(
                 )
             )
         }
-        return keyList
+        return Pair(listObjectResponse.nextContinuationToken, keyList)
     }
 
     private fun getEndpointConfiguration(): AwsClientBuilder.EndpointConfiguration {

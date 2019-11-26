@@ -9,6 +9,7 @@ import io.kweb.dom.element.new
 import io.kweb.plugins.fomanticUI.fomantic
 import io.kweb.plugins.fomanticUI.fomanticUIPlugin
 import io.kweb.routing.route
+import io.kweb.state.KVal
 import io.kweb.state.KVar
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
@@ -18,10 +19,10 @@ fun main() {
 
     val herokuPort: String? = System.getenv("PORT")
 
-    startKweb(herokuPort)
+    startApp(herokuPort)
 }
 
-private fun startKweb(herokuPort: String?) {
+private fun startApp(herokuPort: String?) {
     Kweb(port = herokuPort?.toInt() ?: 6300, debug = true, plugins = listOf(fomanticUIPlugin)) {
         doc.body.new {
             route {
@@ -31,14 +32,77 @@ private fun startKweb(herokuPort: String?) {
                             div(fomantic.ui.header).text("Welcome to S3 Browser 💻")
                         }
 
+                        val s3ClientKVar: KVar<S3Client?> = KVar(null)
+                        val continuationToken = KVar("")
                         val keyData = KVar(emptyList<S3Data>())
+                        val showGetMoreData = KVar(false)
 
                         val loader = div(mapOf("class" to "ui active text loader")).addText("Retrieving keys...")
                         loader.setAttribute("class", "ui disabled text loader")
-                        createInputSegment(loader, keyData)
+                        createInputSegment(s3ClientKVar, loader, keyData, continuationToken, showGetMoreData)
                         createKeysTable(keyData)
+                        displayGetMoreElement(showGetMoreData, continuationToken, s3ClientKVar, keyData, loader)
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun ElementCreator<DivElement>.displayGetMoreElement(
+    showGetMoreData: KVar<Boolean>,
+    continuationToken: KVar<String>,
+    s3ClientKVar: KVar<S3Client?>,
+    keyData: KVar<List<S3Data>>,
+    loader: Element
+) {
+    showGetMoreData.map {
+        if (it) {
+            createGetMoreDataSegment(
+                continuationToken,
+                s3ClientKVar,
+                showGetMoreData,
+                keyData,
+                loader
+            )
+        }
+    }
+}
+
+private fun ElementCreator<DivElement>.createGetMoreDataSegment(
+    continuationToken: KVar<String>,
+    s3ClientKVar: KVar<S3Client?>,
+    showGetMoreData: KVar<Boolean>,
+    keyData: KVar<List<S3Data>>,
+    loader: Element
+): Element {
+    return div().new {
+        button(mapOf("class" to "ui primary button")).text("Get More Data").on.click {
+            val continuationTokenValue = continuationToken.value
+            if (continuationTokenValue.isNotBlank()) {
+                try {
+                    val keyListResponse =
+                        s3ClientKVar.value!!.listAllKeys(continuationToken = continuationTokenValue)
+                    if (keyListResponse.first != null) {
+                        continuationToken.value = keyListResponse.first!!
+                    } else {
+                        continuationToken.value = ""
+                        showGetMoreData.value = false
+                    }
+                    keyData.value = keyListResponse.second
+                } catch (ex: Exception) {
+                    println(ex.localizedMessage)
+                    println(ex.printStackTrace())
+                    p().execute(ERROR_TOAST)
+                    loader.setAttribute("class", "ui disabled text loader")
+                    createKeysTable(KVar(emptyList()))
+                }
+                if (keyData.value.isNotEmpty()) {
+                    p().execute(SUCCESS_TOAST)
+                    loader.setAttribute("class", "ui disabled text loader")
+                }
+            } else {
+                p().execute(NO_MORE_KEYS_TOAST)
             }
         }
     }
@@ -48,11 +112,13 @@ private fun startKweb(herokuPort: String?) {
  * Creates the input area where the users can enter the details about the S3 bucket
  */
 private fun ElementCreator<DivElement>.createInputSegment(
+    s3ClientKvar: KVar<S3Client?>,
     loader: Element,
-    keyData: KVar<List<S3Data>>
+    keyData: KVar<List<S3Data>>,
+    continuationToken: KVar<String>,
+    showGetNextPage: KVar<Boolean>
 ) {
     div(fomantic.ui.vertical.segment).new {
-        //        var endpointInput: String? = null
         val endpointInput = select(fomantic.ui.dropdown)
         endpointInput.new {
             AWS_REGION_OPTIONS.forEach {
@@ -66,7 +132,7 @@ private fun ElementCreator<DivElement>.createInputSegment(
             button(mapOf("class" to "ui primary button")).text("Search").on.click {
                 GlobalScope.launch {
                     loader.setAttribute("class", "ui active text loader")
-                    val s3Client =
+                    s3ClientKvar.value =
                         S3Client(
                             endpointInput.getValue().await(),
                             bucketInput.getValue().await(),
@@ -74,7 +140,14 @@ private fun ElementCreator<DivElement>.createInputSegment(
                             awsSecret.getValue().await()
                         )
                     try {
-                        keyData.value = s3Client.listAllKeys()
+                        val keyListResponse = s3ClientKvar.value!!.listAllKeys()
+                        if (keyListResponse.first != null) {
+                            continuationToken.value = keyListResponse.first!!
+                            showGetNextPage.value = true
+                        } else {
+                            showGetNextPage.value = false
+                        }
+                        keyData.value = keyListResponse.second
                     } catch (ex: Exception) {
                         println(ex.localizedMessage)
                         println(ex.printStackTrace())
@@ -139,6 +212,17 @@ val ERROR_TOAST = """
     class: 'error',
     showIcon: '',
     message: 'Unable to perform the operation, are you sure the bucket is public?'
+  })
+;
+                        """.trimIndent()
+
+
+val NO_MORE_KEYS_TOAST = """
+                            ${'$'}('body')
+  .toast({
+    class: 'warning',
+    showIcon: '',
+    message: 'No more keys to retrieve from the bucket'
   })
 ;
                         """.trimIndent()
