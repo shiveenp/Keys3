@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   push:
@@ -12,15 +12,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-#    - name: Check Build
-#      run: ./gradlew build
-    - name: Install Heroku
-      run: sudo snap install --classic heroku
-    - name: Login to heroku
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: echo $HEROKU_API_KEY
-    - name: Add heroku git remote
-      run: heroku git:remote -a secure-scrubland-34237
-    - name: Push to heroku
-      run: git push heroku HEAD:master
+    - name: Check Build
+      run: ./gradlew build
