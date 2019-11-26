@@ -58,7 +58,6 @@ private fun ElementCreator<DivElement>.displayGetMoreElement(
 ) {
     showGetMoreData.map {
         if (it) {
-            println("true")
             createGetMoreDataSegment(
                 continuationToken,
                 s3ClientKVar,
@@ -66,8 +65,6 @@ private fun ElementCreator<DivElement>.displayGetMoreElement(
                 keyData,
                 loader
             )
-        } else {
-            println("false")
         }
     }
 }
@@ -87,13 +84,11 @@ private fun ElementCreator<DivElement>.createGetMoreDataSegment(
                     val keyListResponse =
                         s3ClientKVar.value!!.listAllKeys(continuationToken = continuationTokenValue)
                     if (keyListResponse.first != null) {
-                        println("continuation token now is: ${keyListResponse.first}")
                         continuationToken.value = keyListResponse.first!!
                     } else {
-                        println("here")
+                        continuationToken.value = ""
                         showGetMoreData.value = false
                     }
-                    println("value is: ${showGetMoreData.value}")
                     keyData.value = keyListResponse.second
                 } catch (ex: Exception) {
                     println(ex.localizedMessage)
@@ -106,6 +101,8 @@ private fun ElementCreator<DivElement>.createGetMoreDataSegment(
                     p().execute(SUCCESS_TOAST)
                     loader.setAttribute("class", "ui disabled text loader")
                 }
+            } else {
+                p().execute(NO_MORE_KEYS_TOAST)
             }
         }
     }
@@ -215,6 +212,17 @@ val ERROR_TOAST = """
     class: 'error',
     showIcon: '',
     message: 'Unable to perform the operation, are you sure the bucket is public?'
+  })
+;
+                        """.trimIndent()
+
+
+val NO_MORE_KEYS_TOAST = """
+                            ${'$'}('body')
+  .toast({
+    class: 'warning',
+    showIcon: '',
+    message: 'No more keys to retrieve from the bucket'
   })
 ;
                         """.trimIndent()
